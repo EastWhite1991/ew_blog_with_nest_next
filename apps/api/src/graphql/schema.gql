@@ -1,0 +1,75 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type UserEntity {
+  id: Int!
+  name: String!
+  email: String!
+  bio: String
+  avatar: String
+  posts: [PostEntity!]!
+  comments: [CommentEntity!]!
+}
+
+type CommentEntity {
+  id: Int!
+  content: String!
+  post: PostEntity!
+  author: UserEntity!
+  createdAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type TagEntity {
+  id: Int!
+  name: String!
+  posts: [PostEntity!]!
+}
+
+type PostEntity {
+  id: Int!
+  title: String!
+  slug: String
+  thumbnail: String
+  content: String!
+  published: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  author: UserEntity!
+  tags: [TagEntity!]!
+  comments: [CommentEntity!]!
+}
+
+type AuthPayload {
+  id: Float!
+  name: String!
+  avatar: String
+  accessToken: String!
+}
+
+type Query {
+  posts(skip: Float, take: Float): [PostEntity!]!
+}
+
+type Mutation {
+  createUser(createUserInput: CreateUserInput!): UserEntity!
+  signIn(signInInput: SignInInput!): AuthPayload!
+}
+
+input CreateUserInput {
+  name: String!
+  password: String!
+  email: String!
+  bio: String
+  avatar: String
+}
+
+input SignInInput {
+  email: String!
+  password: String!
+}

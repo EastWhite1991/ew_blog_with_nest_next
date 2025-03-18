@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  // 默认值设置为自增整数。
+  id        Int       @id @default(autoincrement())
+  name      String
+  // 确保该字段的值在 User 模型的所有记录中是唯一的
+  email     String    @unique
+  // 问号（?）修饰符，使该字段成为可选字段，即在数据库中可以为 null。
+  bio       String?
+  avatar    String?
+  password  String?
+  // 将字段的默认值设置为记录创建时的当前日期和时间。
+  createdAt DateTime  @default(now())
+  // 当记录更新时，会自动更新该字段的值。
+  updatedAt DateTime  @updatedAt
+  // 这是一个与 Post 模型的一对多关联。
+  posts     Post[]
+  // 这是一个与 Comment 模型的一对多关联。
+  comments  Comment[]
+  // 这是一个与 Like 模型的一对多关联。
+  likes     Like[]
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  // 通常用于文章的友好 URL 标识。
+  slug      String?   @unique
+  title     String
+  content   String
+  // 文章的缩略图。
+  thumbnail String?
+  published Boolean
+  authorId  Int
+  // 定义关联关系，fields 指定当前模型中用于关联的字段（authorId），references 指定关联模型中对应的字段（User 模型的 id 字段）。
+  author    User      @relation(fields: [authorId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  comments  Comment[]
+  // @relation("PostTags") 为关联指定了一个名称，可能用于处理多对多关系。
+  tags      Tag[]     @relation("PostTags")
+  likes     Like[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  postId    Int
+  // onDelete: Cascade：当关联的文章被删除时，这条评论也会被级联删除。
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id    Int    @id @default(autoincrement())
+  name  String
+  posts Post[] @relation("PostTags")
+}
+
+model Like {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+  postId Int
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // @@unique：Prisma 的模型级属性，用于指定一组字段的组合值在整个模型中必须是唯一的。
+  // [userId, postId]：表示 userId 和 postId 这两个字段的组合值在所有 Like 记录中必须是唯一的，
+  // 这意味着一个用户对同一篇文章只能有一条点赞记录。
+  @@unique([userId, postId])
+}
